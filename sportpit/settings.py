@@ -105,7 +105,7 @@ DATABASES = {
     }
 }
 
-
+# проводим тест))
 
 # DATABASES = {
 #     'default': {
