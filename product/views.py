@@ -17,7 +17,7 @@ class ProductPagination(PageNumberPagination):
 
 class ProductAllView(generics.ListAPIView):
     """Класс для просмотра списка товаров с пагинацией """
-    queryset = Product.published.annotate(_avg_rating=Avg('reviews__rating')).all()
+    queryset = Product.published.annotate(_avg_rating=Avg('review__rating')).all()
     serializer_class = ProductSerializer
     pagination_class = ProductPagination
 
@@ -26,9 +26,9 @@ class ProductDetailView(APIView):
     """Класс для просмотра товара и отзывов на одной странице """
     permission_classes = (IsOwnerOrReadOnly, )
 
-    def get(self, request, post_slug=None):
-        product = Product.published.annotate(_avg_rating=Avg('reviews__rating')).filter(slug=post_slug)
-        review = Review.objects.filter(product_review__slug=post_slug).select_related('user')
+    def get(self, request, product_slug=None):
+        product = Product.published.annotate(_avg_rating=Avg('review__rating')).filter(slug=product_slug)
+        review = Review.objects.filter(product_review__slug=product_slug).select_related('user')
 
         return Response({"product": ProductSerializer(product, many=True).data,
                          "review": ReviewSerializer(review, many=True).data})
@@ -59,7 +59,7 @@ class ProductDetailView(APIView):
 
 
 class SearchProduct(generics.ListAPIView):
-    """Класс для для поиска товаров"""
+    """Класс для поиска товаров"""
     serializer_class = ProductSerializer
 
     def get_queryset(self):
@@ -74,7 +74,7 @@ class CategoryProductView(generics.ListAPIView):
         """Функция выводит все категории(у которых есть 1 и больше записей) если не указан после '/' slug"""
         slug = self.kwargs.get('slug')
         if not slug:
-            return CategoryProduct.objects.annotate(total=Count("posts")).filter(total__gt=0)
+            return CategoryProduct.objects.annotate(total=Count("product")).filter(total__gt=0)
         return CategoryProduct.objects.filter(slug=slug)
 
 
