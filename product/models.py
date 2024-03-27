@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Avg
 from django.template.defaultfilters import slugify
 from unidecode import unidecode
 
@@ -21,22 +22,27 @@ class Product(models.Model):
                             unique=True, verbose_name='Slug (Формируется автоматически)')
     content = models.TextField(blank=True, verbose_name='Описание')
     is_published = models.BooleanField(default=Status.PUBLISHED)
-    price = models.DecimalField(max_digits=10, decimal_places=2,
-                                blank=True, default=100, verbose_name='Цена')
+    price = models.IntegerField(blank=True, default=100, verbose_name='Цена')
+    discount = models.IntegerField(blank=True, verbose_name='Скидка', null=True)
     photo = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None,
-                              blank=True, null=True, verbose_name="Фото")
+                              blank=True, null=True, verbose_name="img")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления статьи')
     cat = models.ForeignKey('CategoryProduct', on_delete=models.CASCADE, null=True,
                             related_name='posts', verbose_name="Категории")
     quantity = models.PositiveIntegerField(default=0, verbose_name='Количество')
-    # tags = models.ManyToManyField('Tags', blank=True, related_name='tags', verbose_name="Теги")
 
     objects = models.Manager()
     published = PublishedManager()
 
     def __str__(self):
         return self.title
+
+    @property
+    def avg_rating(self):
+        if hasattr(self, '_avg_rating'):
+            return self._avg_rating
+        return self.reviews.aggregate(Avg('rating'))
 
     class Meta:
         verbose_name = 'Товар'
@@ -64,19 +70,27 @@ class CategoryProduct(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-# => В ОБДУМКЕ !
-# class Review(models.Model):
-#     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='product')
-#     review = models.TextField(blank=True, verbose_name='Отзыв', null=True)
-#     product_review = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-#     objects = models.Manager()
-#
-#     def __str__(self):
-#         return self.review
-#
-#     class Meta:
-#         verbose_name = 'Отзыв'
-#         verbose_name_plural = 'Отзывы'
 
-# class UploadFiles(models.Model):
-#     file = models.FileField(upload_to='uploads_model')
+class Review(models.Model):
+    class RatingChoice(models.IntegerChoices):
+        one = 1, '★☆☆☆☆'
+        two = 2, '★★☆☆☆'
+        three = 3, '★★★☆☆'
+        four = 4, '★★★★☆'
+        five = 5, '★★★★★'
+
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='reviews')
+    review = models.TextField(blank=True, verbose_name='Отзыв', null=True)
+    create_date = models.DateTimeField(auto_now_add=True)
+    changes = models.BooleanField(default=False)
+    product_review = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews', null=True)
+    rating = models.IntegerField(null=True, blank=True, verbose_name='Оценка', choices=RatingChoice.choices)
+    objects = models.Manager()
+
+    def __str__(self):
+        return f'Пользователь: {self.user}, товар: {self.product_review}, оценка: {self.rating}'
+
+    class Meta:
+        ordering = ('-create_date', )
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'

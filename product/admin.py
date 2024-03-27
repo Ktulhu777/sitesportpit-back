@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-from .models import Product, CategoryProduct
+from .models import Product, CategoryProduct, Review
 
 
 @admin.register(Product)
@@ -24,3 +24,12 @@ class ProductModel(admin.ModelAdmin):
 class CategoryProductAdmin(admin.ModelAdmin):
     fields = ('cat_name', 'slug',)
     prepopulated_fields = {"slug": ("cat_name",)}  # автоматически формирует слаг на основе cat_name
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    fields = ('user', 'product_review', 'rating', 'review')
+    ordering = ('-create_date', 'product_review', 'user', 'rating')
+    list_display = ('user', 'product_review', 'rating', 'create_date')
+    list_display_links = ('user', 'product_review')
+    readonly_fields = ('user', 'product_review', 'rating', 'review')

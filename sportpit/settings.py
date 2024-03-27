@@ -17,7 +17,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-$cqq_02b5_pv^z8%6(y7@#ad_(*%2^i5^0h1qo7lbnhs9*e)2v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(env('DEBUG', default=1))
+# DEBUG = int(env('DEBUG', default=1))
+DEBUG = True
 
 # ALLOWED_HOSTS = env('ALLOWED_HOSTS').split()
 
@@ -101,7 +102,7 @@ DATABASES = {
         'USER': 'sitesportpit',
         'PASSWORD': '1234',
         'HOST': 'localhost',
-        'POST': 8080,
+        'POST': 5432,
     }
 }
 
