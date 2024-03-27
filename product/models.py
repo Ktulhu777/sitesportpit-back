@@ -17,32 +17,32 @@ class Product(models.Model):
         DRAFT = 0, 'Черновик'
         PUBLISHED = 1, 'Опубликовано'
 
-    title = models.CharField(max_length=150, verbose_name='Название продукта')
+    name = models.CharField(max_length=150, verbose_name='Название продукта')
     slug = models.SlugField(max_length=255, blank=True,
                             unique=True, verbose_name='Slug (Формируется автоматически)')
-    content = models.TextField(blank=True, verbose_name='Описание')
+    description = models.TextField(blank=True, verbose_name='Описание')
     is_published = models.BooleanField(default=Status.PUBLISHED)
-    price = models.IntegerField(blank=True, default=100, verbose_name='Цена')
-    discount = models.IntegerField(blank=True, verbose_name='Скидка', null=True)
-    photo = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None,
+    price = models.FloatField(blank=True, default=100, verbose_name='Цена')
+    discount = models.PositiveIntegerField(blank=True, verbose_name='Скидка', null=True)
+    img = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None,
                               blank=True, null=True, verbose_name="img")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления статьи')
     cat = models.ForeignKey('CategoryProduct', on_delete=models.CASCADE, null=True,
-                            related_name='posts', verbose_name="Категории")
+                            related_name='product', verbose_name="Категории")
     quantity = models.PositiveIntegerField(default=0, verbose_name='Количество')
 
     objects = models.Manager()
     published = PublishedManager()
 
     def __str__(self):
-        return self.title
+        return self.name
 
     @property
     def avg_rating(self):
         if hasattr(self, '_avg_rating'):
             return self._avg_rating
-        return self.reviews.aggregate(Avg('rating'))
+        return self.reviews_product.aggregate(Avg('rating'))
 
     class Meta:
         verbose_name = 'Товар'
@@ -51,8 +51,8 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         """Формирует автомачески slug для продукта"""
-        transliterated_title = unidecode(str(self.title))
-        self.slug = slugify(transliterated_title)
+        transliterated_name = unidecode(str(self.name))
+        self.slug = slugify(transliterated_name)
         super().save(*args, **kwargs)
 
 
@@ -79,11 +79,11 @@ class Review(models.Model):
         four = 4, '★★★★☆'
         five = 5, '★★★★★'
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='review')
     review = models.TextField(blank=True, verbose_name='Отзыв', null=True)
     create_date = models.DateTimeField(auto_now_add=True)
     changes = models.BooleanField(default=False)
-    product_review = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews', null=True)
+    product_review = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='review', null=True)
     rating = models.IntegerField(null=True, blank=True, verbose_name='Оценка', choices=RatingChoice.choices)
     objects = models.Manager()
 
