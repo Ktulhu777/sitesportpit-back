@@ -25,7 +25,7 @@ class Product(models.Model):
     price = models.FloatField(blank=True, default=100, verbose_name='Цена')
     discount = models.PositiveIntegerField(blank=True, verbose_name='Скидка', null=True)
     img = models.ImageField(upload_to="photos/%Y/%m/%d/", default=None,
-                              blank=True, null=True, verbose_name="img")
+                            blank=True, null=True, verbose_name="img")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления статьи')
     cat = models.ForeignKey('CategoryProduct', on_delete=models.CASCADE, null=True,
@@ -42,7 +42,11 @@ class Product(models.Model):
     def avg_rating(self):
         if hasattr(self, '_avg_rating'):
             return self._avg_rating
-        return self.reviews_product.aggregate(Avg('rating'))
+        return self.review.aggregate(Avg('rating'))
+
+    @property
+    def discount_price(self):
+        return round(self.price - (self.price / 100 * self.discount), 2)
 
     class Meta:
         verbose_name = 'Товар'
@@ -91,6 +95,6 @@ class Review(models.Model):
         return f'Пользователь: {self.user}, товар: {self.product_review}, оценка: {self.rating}'
 
     class Meta:
-        ordering = ('-create_date', )
+        ordering = ('-create_date',)
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
