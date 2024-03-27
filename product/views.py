@@ -6,7 +6,7 @@ from .models import Product, CategoryProduct, Review
 from .serializers import ProductSerializer, CategorySerializer, ReviewSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
+from .permissions import IsOwnerOrReadOnly
 
 class ProductPagination(PageNumberPagination):
     """Класс пагинации"""
@@ -24,6 +24,7 @@ class ProductAllView(generics.ListAPIView):
 
 class ProductDetailView(APIView):
     """Класс для просмотра товара и отзывов на одной странице """
+    permission_classes = (IsOwnerOrReadOnly, )
 
     def get(self, request, post_slug=None):
         product = Product.published.annotate(_avg_rating=Avg('reviews__rating')).filter(slug=post_slug)
