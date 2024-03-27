@@ -3,9 +3,11 @@ from .models import Product, CategoryProduct, Review
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    cat = serializers.CharField()
+
     class Meta:
         model = Product
-        fields = ('id', 'title', 'content', 'photo', 'price', 'time_create', 'cat_id', 'avg_rating',)
+        fields = ('id', 'title', 'content', 'photo', 'price', 'time_create', 'cat', 'avg_rating',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,4 +31,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         instance.changes = True
         instance.save()
         return instance
-
