@@ -45,7 +45,6 @@ class ProductDetailView(APIView):
         pk = kwargs.get('pk', None)
         if not pk:
             return Response({"error": "Данного отзыва не существует"})
-
         try:
             instance = Review.objects.get(pk=pk)
         except:
@@ -56,6 +55,18 @@ class ProductDetailView(APIView):
         serializer.save()
 
         return Response({"review": serializer.data})
+
+    def delete(self, request, *args, **kwargs):
+        pk = kwargs.get('pk', None)
+        if not pk:
+            return Response({"error": "Данного отзыва не существует"})
+        try:
+            instance = Review.objects.get(pk=pk)
+        except:
+            return Response({"error": "Данного отзыва не существует"})
+
+        instance.delete()
+        return Response({"review": "Отзыв успешно удален"})
 
 
 class SearchProduct(generics.ListAPIView):
